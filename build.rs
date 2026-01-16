@@ -65,6 +65,7 @@ fn main() {
             .flag_if_supported("-std=c++17")
             .flag_if_supported("-O3")
             .flag_if_supported("-ffast-math")
+            .flag_if_supported("-march=native") // Enable all CPU features including NEON on ARM
             .flag_if_supported("-fdiagnostics-color=always")
             .flag_if_supported("-g1"); // Simplify debugging
     } else if target_os == "macos" {

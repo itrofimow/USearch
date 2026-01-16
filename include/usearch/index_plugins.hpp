@@ -1400,15 +1400,32 @@ template <typename scalar_at = std::uint64_t, typename result_at = std::size_t> 
     inline result_t operator()(scalar_t const* a, scalar_t const* b, std::size_t words) const noexcept {
         constexpr std::size_t bits_per_word_k = sizeof(scalar_t) * CHAR_BIT;
         result_t matches{};
+        
+#if defined(__GNUC__) || defined(__clang__)
+        // Optimized version using compiler intrinsics for popcount
+        // This avoids std::bitset overhead and enables better vectorization
+        for (std::size_t i = 0; i != words; ++i) {
+            auto xor_val = a[i] ^ b[i];
+            if constexpr (sizeof(scalar_t) == 8) {
+                matches += __builtin_popcountll(static_cast<unsigned long long>(xor_val));
+            } else if constexpr (sizeof(scalar_t) == 4) {
+                matches += __builtin_popcount(static_cast<unsigned int>(xor_val));
+            } else if constexpr (sizeof(scalar_t) == 2) {
+                matches += __builtin_popcount(static_cast<unsigned int>(xor_val));
+            } else {
+                // For b1x8_t (1 byte)
+                matches += __builtin_popcount(static_cast<unsigned int>(xor_val));
+            }
+        }
+#else
+        // Fallback for MSVC and other compilers
 #if USEARCH_USE_OPENMP
 #pragma omp simd reduction(+ : matches)
-#elif defined(USEARCH_DEFINED_CLANG)
-#pragma clang loop vectorize(enable)
-#elif defined(USEARCH_DEFINED_GCC)
-#pragma GCC ivdep
 #endif
         for (std::size_t i = 0; i != words; ++i)
             matches += std::bitset<bits_per_word_k>(a[i] ^ b[i]).count();
+#endif
+        
         return matches;
     }
 };

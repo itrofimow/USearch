@@ -1523,6 +1523,15 @@ struct dummy_prefetch_t {
     inline void operator()(member_citerator_like_at, member_citerator_like_at) const noexcept {}
 };
 
+struct memory_prefetch_t {
+    template <typename member_citerator_like_at>
+    inline void operator()(member_citerator_like_at begin, member_citerator_like_at end) const noexcept {
+        for (; begin != end; ++begin) {
+            usearch_prefetch_m(get_key(begin));
+        }
+    }
+};
+
 /**
  *  @brief  An example of what a USearch-compatible executor (thread-pool) should look like.
  *

@@ -2046,7 +2046,7 @@ class index_dense_gt {
         metric_proxy_t metric{*this};
         return reuse_node //
                    ? typed_->update(typed_->iterator_at(free_slot), key, vector_data, metric, update_config, on_success)
-                   : typed_->add(key, vector_data, metric, update_config, on_success);
+                   : typed_->add(key, vector_data, metric, update_config, on_success, memory_prefetch_t{});
     }
 
     template <typename scalar_at, typename predicate_at>
